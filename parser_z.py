@@ -1,7 +1,6 @@
 import csv
 import json
 
-# Time slot mapping
 time_slot_mapping = {
     "theory": {
         "08:00-08:50": ["TF1", "TAA1", "TG1", "TE1", "TCC1"],
@@ -31,7 +30,6 @@ time_slot_mapping = {
     }
 }
 
-# Function to determine time slot for a given slot code
 def find_time_for_slot(slot_code):
     slot_type = "lab" if 'L' in slot_code else "theory"
     
@@ -40,27 +38,22 @@ def find_time_for_slot(slot_code):
             return time_range
     return "Unknown"
 
-# Function to convert CSV to JSON
 def csv_to_json(file_path):
     result = {}
     
-    # Read the CSV file
     with open(file_path, mode='r') as file:
         csv_reader = csv.DictReader(file)
         
-        # Iterate through each row of the CSV
         for row in csv_reader:
             block = row['BLOCK']
-            slots = row['SLOT'].split('+')  # Handle multiple slots like 'F1+TF1'
+            slots = row['SLOT'].split('+')  
             room_number = row['ROOM NUMBER']
             course_code = row['COURSE CODE']
             course_title = row['COURSE TITLE']
             employee_name = row['EMPLOYEE NAME']
             
-            # Find time slots for each slot code
             slot_times = {slot: find_time_for_slot(slot) for slot in slots}
             
-            # Data to add for each class
             class_info = {
                 "course_code": course_code,
                 "course_title": course_title,
@@ -69,30 +62,24 @@ def csv_to_json(file_path):
                 "slot_times": slot_times
             }
             
-            # If the block is not in the result, add it
             if block not in result:
                 result[block] = {}
             
-            # If the slot is not in the block, add it
             for slot in slots:
                 if slot not in result[block]:
                     result[block][slot] = []
                 
-                # Add the class information to the slot
                 result[block][slot].append(class_info)
     
     return result
 
-# Convert CSV to JSON and save the result to a file
 def save_json(data, output_file):
     with open(output_file, 'w') as json_file:
         json.dump(data, json_file, indent=4)
 
-# File paths
 csv_file_path = 'cxl.csv'
 json_output_file = 'output3.json'
 
-# Process the CSV and save it as JSON
 json_data = csv_to_json(csv_file_path)
 save_json(json_data, json_output_file)
 

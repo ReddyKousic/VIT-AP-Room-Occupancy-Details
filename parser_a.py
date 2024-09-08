@@ -31,7 +31,6 @@ time_slot_mapping = {
     }
 }
 
-# Function to determine time slot for a given slot code
 def find_time_for_slot(slot_code):
     slot_type = "lab" if 'L' in slot_code else "theory"
     
@@ -40,28 +39,23 @@ def find_time_for_slot(slot_code):
             return time_range
     return "Unknown"
 
-# Function to convert CSV to JSON
 def csv_to_json(file_path):
     result = {}
     time_slots_data = {}
     
-    # Read the CSV file
     with open(file_path, mode='r') as file:
         csv_reader = csv.DictReader(file)
         
-        # Iterate through each row of the CSV
         for row in csv_reader:
             block = row['BLOCK']
-            slots = row['SLOT'].split('+')  # Handle multiple slots like 'F1+TF1'
+            slots = row['SLOT'].split('+')  
             room_number = row['ROOM NUMBER']
             course_code = row['COURSE CODE']
             course_title = row['COURSE TITLE']
             employee_name = row['EMPLOYEE NAME']
             
-            # Find time slots for each slot code
             slot_times = {slot: find_time_for_slot(slot) for slot in slots}
             
-            # Data to add for each class
             class_info = {
                 "course_code": course_code,
                 "course_title": course_title,
@@ -70,19 +64,15 @@ def csv_to_json(file_path):
                 "slot_times": slot_times
             }
             
-            # If the block is not in the result, add it
             if block not in result:
                 result[block] = {}
             
-            # If the slot is not in the block, add it
             for slot in slots:
                 if slot not in result[block]:
                     result[block][slot] = []
                 
-                # Add the class information to the slot
                 result[block][slot].append(class_info)
                 
-                # Update time_slots_data
                 time_range = find_time_for_slot(slot)
                 if time_range != "Unknown":
                     if time_range not in time_slots_data:
@@ -91,24 +81,20 @@ def csv_to_json(file_path):
                         time_slots_data[time_range][block] = set()
                     time_slots_data[time_range][block].add(room_number)
     
-    # Convert sets to lists
     for time_range in time_slots_data:
         for block in time_slots_data[time_range]:
             time_slots_data[time_range][block] = list(time_slots_data[time_range][block])
     
     return result, time_slots_data
 
-# Convert CSV to JSON and save the result to a file
 def save_json(data, output_file):
     with open(output_file, 'w') as json_file:
         json.dump(data, json_file, indent=4)
 
-# File paths
 csv_file_path = 'cxl.csv'
 json_output_file = 'output4.json'
 time_slots_output_file = 'time_slots.json'
 
-# Process the CSV and save it as JSON
 class_data, time_slots_data = csv_to_json(csv_file_path)
 save_json(class_data, json_output_file)
 save_json(time_slots_data, time_slots_output_file)
